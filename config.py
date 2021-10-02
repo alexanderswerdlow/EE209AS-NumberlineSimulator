@@ -7,7 +7,7 @@ p_c = 5
 m = 10
 
 def phi(y):
-    return -2 * np.sin(y)
+    return 2 * np.cos(y)
 
 def u(t):
     return 0.5 * np.sqrt(t)
@@ -18,7 +18,7 @@ def f(state, u, dt, t):
     if has_crashed:
         v_new = 0
     else:
-        v_new = state[1] + (1 / m) * (u - phi(state[0])) + + np.random.normal(0, 0.1)
+        v_new = state[1] + (1 / m) * (u - derivative(phi, state[0])) + + np.random.normal(0, 0.1)
 
     return np.vstack((y_new, v_new))
 
