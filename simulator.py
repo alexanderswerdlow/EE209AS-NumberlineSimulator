@@ -11,7 +11,7 @@ class Simulator:
         self.h = h
 
     def step(self):
-        self.x = f(self.x, self.u(self.t), self.t)
+        self.x = f(self.x, self.u(self.t), self.dt, self.t)
         self.t += self.dt
 
     def get_state(self):

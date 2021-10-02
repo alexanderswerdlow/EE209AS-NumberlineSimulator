@@ -12,8 +12,8 @@ def phi(y):
 def u(t):
     return 0.5 * np.sqrt(t)
 
-def f(state, u, t):
-    y_new = state[0] + state[1]
+def f(state, u, dt, t):
+    y_new = state[0] + state[1] * dt
     has_crashed = random.uniform(0, 1) < ((np.abs(state[1]) - v_max) * p_c)/v_max
     if has_crashed:
         v_new = 0
