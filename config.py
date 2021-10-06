@@ -33,6 +33,9 @@ def f(state, u, dt, t):
 def h(state, input, t):
     return state[0] + np.random.normal(0, 0.5)
 
+def r(state, input, next_state):
+    # 
+
 x = np.vstack((5, 10))
 
 
