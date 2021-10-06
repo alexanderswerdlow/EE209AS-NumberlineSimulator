@@ -27,8 +27,8 @@ class Simulator:
     def get_time(self):
         return self.t
 
-    def value_iteration(self):
-        policy, value, value_delta, termination_epsilon = {}, {}, 0, 0.01
+    def value_iteration(self, termination_epsilon = 0.01):
+        policy, value, value_delta, termination_epsilon = {}, {}, 0
         while value_delta > termination_epsilon:
             value_delta = 0
             for state in self.s:
@@ -40,9 +40,46 @@ class Simulator:
                         movement_reward = self.r(state, action, next_state)
                         action_values[action] += movement_prob * (movement_reward + self.gamma * value[next_state])
 
-                policy[state], updated_value = max(action_values.items(), key=lambda x:x[1])
-                value_delta = max(value_delta, abs(value[state] - updated_value))
-                value[state] = updated_value
+                prev_value = value[state]
+                policy[state], value[state] = max(action_values.items(), key=lambda x:x[1])
+                value_delta = max(value_delta, abs(value[state] - prev_value))
+
+    def policy_iteration(self, termination_epsilon = 0.01):
+        policy, value, value_delta  = {}, {}, 0
+
+        # Need to fix bug that occurs if two policies have equally good values and the algorithm switches between the two
+        while True:
+            # Policy Evaluation
+            while value_delta > termination_epsilon:
+                value_delta = 0
+                for state in self.s:
+                    state_value = 0
+                    for next_state in self.s:
+                        movement_prob = self.p(state, policy[state], next_state)
+                        movement_reward = self.r(state, policy[state], next_state)
+                        state_value += movement_prob * (movement_reward + self.gamma * value[next_state])
+
+                    value_delta = max(value_delta, abs(value[state] - state_value))
+                    value[state] = state_value
+
+            # Policy Improvement
+            is_policy_stable = True
+            for state in self.s:
+                from collections import defaultdict
+                action_values = defaultdict(float)
+                for action in self.a:
+                    for next_state in self.s:
+                        movement_prob = self.p(state, action, next_state)
+                        movement_reward = self.r(state, action, next_state)
+                        action_values[action] += movement_prob * (movement_reward + self.gamma * value[next_state])
+
+                prev_state_policy = policy[state]
+                policy[state], _ = max(action_values.items(), key=lambda x:x[1])
+                if prev_state_policy != policy[state]:
+                    is_policy_stable = False
+
+            if is_policy_stable:
+                break
 
 
 sim = Simulator(0.1, x, u, f, h)
