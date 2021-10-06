@@ -4,15 +4,15 @@ class Simulator:
 
     def __init__(self, dt, x, u, f, h, r, a, p, gamma) -> None:
         self.t = 0
-        self.dt = dt
-        self.x = x
-        self.u = u
-        self.f = f # 
-        self.h = h # 
+        self.dt = dt # simulator timestep, e.g. 0.01
+        self.x = x # initial state 
+        self.u = u # u(t), input function
+        self.f = f # f(x, u(t), dt, t), state update function
+        self.h = h # h(x, u(t), t), observation function
         self.r = r # r(s, a, s')
-        self.a = a # set of all actions
-        self.p = p # P(s, a, s'), prob of transitioning given action, cur state
-        self.gamma = gamma
+        self.a = a # set (list) of all actions
+        self.p = p # p(s, a, s'), prob of transitioning given action, cur state
+        self.gamma = gamma # float
 
     def step(self):
         self.x = f(self.x, self.u(self.t), self.dt, self.t)
@@ -28,7 +28,7 @@ class Simulator:
         return self.t
 
     def value_iteration(self):
-        policy, value, value_delta, termination_epsilon = {}, {}, 0
+        policy, value, value_delta, termination_epsilon = {}, {}, 0, 0.01
         while value_delta > termination_epsilon:
             value_delta = 0
             for state in self.s:
