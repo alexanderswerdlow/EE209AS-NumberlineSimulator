@@ -1,4 +1,6 @@
 from config import x, u, f, h
+import numpy as np
+from collections import defaultdict
 
 class Simulator:
 
@@ -32,22 +34,27 @@ class Simulator:
         while value_delta > termination_epsilon:
             value_delta = 0
             for state in self.s:
-                from collections import defaultdict
-                action_values = defaultdict(float)
+                best_action, best_value = None, None
                 for action in self.a:
+                    action_value = 0
                     for next_state in self.s:
                         movement_prob = self.p(state, action, next_state)
                         movement_reward = self.r(state, action, next_state)
-                        action_values[action] += movement_prob * (movement_reward + self.gamma * value[next_state])
+                        action_value += movement_prob * (movement_reward + self.gamma * value[next_state])
+                    
+                    if best_action is None or action_value > best_value:
+                        best_action, best_value = action, action_value
 
-                prev_value = value[state]
-                policy[state], value[state] = max(action_values.items(), key=lambda x:x[1])
-                value_delta = max(value_delta, abs(value[state] - prev_value))
-
+                value_delta = max(value_delta, abs(value[state] - best_value))
+                policy[state], value[state] = best_action, best_value
+                
     def policy_iteration(self, termination_epsilon = 0.01):
         policy, value, value_delta  = {}, {}, 0
 
-        # Need to fix bug that occurs if two policies have equally good values and the algorithm switches between the two
+        # Randomly initialize policy
+        for state in self.s:
+            policy[state] = np.random.choice(self.a)
+
         while True:
             # Policy Evaluation
             while value_delta > termination_epsilon:
@@ -65,18 +72,23 @@ class Simulator:
             # Policy Improvement
             is_policy_stable = True
             for state in self.s:
-                from collections import defaultdict
-                action_values = defaultdict(float)
+                best_action, best_value = None, None
                 for action in self.a:
+                    action_value = 0
                     for next_state in self.s:
                         movement_prob = self.p(state, action, next_state)
                         movement_reward = self.r(state, action, next_state)
-                        action_values[action] += movement_prob * (movement_reward + self.gamma * value[next_state])
+                        action_value += movement_prob * (movement_reward + self.gamma * value[next_state])
 
-                prev_state_policy = policy[state]
-                policy[state], _ = max(action_values.items(), key=lambda x:x[1])
-                if prev_state_policy != policy[state]:
+                    if best_action is None or action_value > best_value:
+                        best_action, best_value = action, action_value
+
+                # Need to fix bug that occurs if two policies have equally good values and the algorithm switches between the two
+                # TODO: Is it possible that two policies have equal overall values but different values at different states
+                if policy[state] != best_action and value[state] != best_value:
                     is_policy_stable = False
+
+                policy[state] = best_action
 
             if is_policy_stable:
                 break
